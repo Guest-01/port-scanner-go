@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -15,8 +16,20 @@ func main() {
 		os.Exit(1)
 	}
 	host := os.Args[1]
-	// TODO: Do multi port scan
-	scanPort(host, 8443)
+
+	ports := []int{20, 21, 22, 23, 25, 53, 80, 110, 111, 135, 139, 443, 445, 993, 995, 1723, 3306, 3389, 5000, 5432, 8080, 8443}
+
+	var wg sync.WaitGroup
+
+	for _, port := range ports {
+		wg.Add(1)
+		go func(port int) {
+			defer wg.Done()
+			scanPort(host, port)
+		}(port)
+	}
+
+	wg.Wait()
 }
 
 func getUsage() string {
