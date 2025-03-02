@@ -6,18 +6,24 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
 
 func main() {
-	if len(os.Args) != 2 {
+	if len(os.Args) != 3 {
 		fmt.Fprintln(os.Stderr, getUsage())
 		os.Exit(1)
 	}
+
 	host := os.Args[1]
 
-	ports := []int{22, 80, 443, 8080, 12345}
+	ports, err := parsePorts(os.Args[2])
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Invalid port(s)")
+		os.Exit(1)
+	}
 
 	var wg sync.WaitGroup
 
@@ -37,10 +43,30 @@ func main() {
 }
 
 func getUsage() string {
-	msg := fmt.Sprintf("Usage: %s <host>\n", filepath.Base(os.Args[0]))
+	msg := fmt.Sprintf("Usage: %s <host> <port(s)>\n", filepath.Base(os.Args[0]))
 	msg += fmt.Sprintln("\nArguments:")
 	msg += fmt.Sprintln("  <host>\t\t호스트 주소(도메인 또는 IP 주소)")
+	msg += fmt.Sprintln("  <port(s)>\t\t포트(단일 또는 여러 개의 포트를 콤마(,)로 구분)")
 	return msg
+}
+
+func parsePorts(portsStr string) ([]int, error) {
+	if !strings.Contains(portsStr, ",") {
+		port, err := strconv.Atoi(portsStr)
+		if err != nil {
+			return nil, err
+		}
+		return []int{port}, nil
+	}
+	ports := make([]int, 0)
+	for _, portStr := range strings.Split(portsStr, ",") {
+		port, err := strconv.Atoi(portStr)
+		if err != nil {
+			return nil, err
+		}
+		ports = append(ports, port)
+	}
+	return ports, nil
 }
 
 func scanPort(host string, port int) bool {
