@@ -1,42 +1,30 @@
 package main
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestParsePorts(t *testing.T) {
-	validInputs := []struct {
-		single   []string
-		multiple []string
+	testCases := []struct {
+		name     string
+		input    string
+		expected []int
 	}{
-		{single: []string{"22", "80", "8080"}, multiple: []string{"80,443,8080", "123,12345,54321"}},
+		{name: "single port", input: "80", expected: []int{80}},
+		{name: "multiple ports", input: "80,443,8080", expected: []int{80, 443, 8080}},
+		{name: "invalid port", input: "80,abc", expected: nil},
+		{name: "empty input", input: "", expected: nil},
+		{name: "just commas", input: ",,", expected: nil},
+		{name: "not in port range", input: "99999", expected: nil},
 	}
 
-	t.Run("given single port", func(t *testing.T) {
-		for _, validInput := range validInputs {
-			for _, port := range validInput.single {
-				port, err := parsePorts(port)
-				if err != nil {
-					t.Errorf("Error parsing single port: %v", err)
-				}
-				if len(port) != 1 {
-					t.Errorf("Expected 1 port, got %d", len(port))
-				}
-				t.Log("Single port parsed successfully:", port[0])
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, _ := parsePorts(tc.input)
+			if !reflect.DeepEqual(result, tc.expected) {
+				t.Errorf("input: %v expected: %v result: %v", tc.input, tc.expected, result)
 			}
-		}
-	})
-
-	t.Run("given multiple ports", func(t *testing.T) {
-		for _, validInput := range validInputs {
-			for _, ports := range validInput.multiple {
-				ports, err := parsePorts(ports)
-				if err != nil {
-					t.Errorf("Error parsing multiple ports: %v", err)
-				}
-				if len(ports) < 2 {
-					t.Errorf("Expected more than 1 port, got %d", len(ports))
-				}
-				t.Log("Multiple ports parsed successfully:", ports)
-			}
-		}
-	})
+		})
+	}
 }
