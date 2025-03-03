@@ -21,7 +21,7 @@ func main() {
 
 	ports, err := parsePorts(os.Args[2])
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Invalid port(s):", os.Args[2])
+		fmt.Fprintf(os.Stderr, "Error: Invalid port(s): %s. Details: %v\n", os.Args[2], err)
 		os.Exit(1)
 	}
 
