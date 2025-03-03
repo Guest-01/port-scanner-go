@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -56,6 +57,9 @@ func parsePorts(portsStr string) ([]int, error) {
 		if err != nil {
 			return nil, err
 		}
+		if port > 65535 || port < 1 {
+			return nil, errors.New("invalid port range")
+		}
 		return []int{port}, nil
 	}
 	ports := make([]int, 0)
@@ -63,6 +67,9 @@ func parsePorts(portsStr string) ([]int, error) {
 		port, err := strconv.Atoi(portStr)
 		if err != nil {
 			return nil, err
+		}
+		if port > 65535 || port < 1 {
+			return nil, errors.New("invalid port range")
 		}
 		ports = append(ports, port)
 	}
