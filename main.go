@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -22,7 +21,7 @@ func main() {
 
 	ports, err := parsePorts(os.Args[2])
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Invalid port(s)")
+		fmt.Fprintln(os.Stderr, "Invalid port(s):", os.Args[2])
 		os.Exit(1)
 	}
 
@@ -58,7 +57,7 @@ func parsePorts(portsStr string) ([]int, error) {
 			return nil, err
 		}
 		if port > 65535 || port < 1 {
-			return nil, errors.New("invalid port range")
+			return nil, fmt.Errorf("port out of range: %v", port)
 		}
 		return []int{port}, nil
 	}
@@ -69,7 +68,7 @@ func parsePorts(portsStr string) ([]int, error) {
 			return nil, err
 		}
 		if port > 65535 || port < 1 {
-			return nil, errors.New("invalid port range")
+			return nil, fmt.Errorf("port out of range: %v", port)
 		}
 		ports = append(ports, port)
 	}
