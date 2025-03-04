@@ -51,16 +51,6 @@ func getUsage() string {
 }
 
 func parsePorts(portsStr string) ([]int, error) {
-	if !strings.Contains(portsStr, ",") {
-		port, err := strconv.Atoi(portsStr)
-		if err != nil {
-			return nil, err
-		}
-		if port > 65535 || port < 1 {
-			return nil, fmt.Errorf("port out of range: %v", port)
-		}
-		return []int{port}, nil
-	}
 	ports := make([]int, 0)
 	for _, portStr := range strings.Split(portsStr, ",") {
 		port, err := strconv.Atoi(portStr)

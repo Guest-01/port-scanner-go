@@ -16,6 +16,8 @@ func TestParsePorts(t *testing.T) {
 		{name: "invalid port", input: "80,abc", expected: nil},
 		{name: "empty input", input: "", expected: nil},
 		{name: "just commas", input: ",,", expected: nil},
+		{name: "some empty 1", input: ",123,", expected: nil},
+		{name: "some empty 2", input: "123,,456", expected: nil},
 		{name: "not in port range", input: "99999", expected: nil},
 	}
 
