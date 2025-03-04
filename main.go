@@ -50,6 +50,7 @@ func getUsage() string {
 	return msg
 }
 
+// "80,443,8080-8082" -> []int{80, 443, 8080, 8081, 8082}
 func parsePorts(portsStr string) ([]int, error) {
 	ports := make([]int, 0)
 	for _, portStr := range strings.Split(portsStr, ",") {
@@ -61,6 +62,34 @@ func parsePorts(portsStr string) ([]int, error) {
 			return nil, fmt.Errorf("port out of range: %v", port)
 		}
 		ports = append(ports, port)
+	}
+	return ports, nil
+}
+
+// "8080-8082" -> []int{8080, 8081, 8082}
+func parseRangePorts(portsStr string) ([]int, error) {
+	ports := make([]int, 0)
+	split := strings.Split(portsStr, "-")
+	if len(split) != 2 {
+		return nil, fmt.Errorf("len(split) != 2: %v", split)
+	}
+
+	start, err := strconv.Atoi(split[0])
+	if err != nil {
+		return nil, fmt.Errorf("start is not a number: %v", split[0])
+	}
+
+	end, err := strconv.Atoi(split[1])
+	if err != nil {
+		return nil, fmt.Errorf("end is not a number: %v", split[1])
+	}
+
+	if start >= end {
+		return nil, fmt.Errorf("start is bigger than end: %v", split)
+	}
+
+	for i := start; i <= end; i++ {
+		ports = append(ports, i)
 	}
 	return ports, nil
 }

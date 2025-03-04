@@ -30,3 +30,22 @@ func TestParsePorts(t *testing.T) {
 		})
 	}
 }
+
+func TestParseRangePorts(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected []int
+	}{
+		{name: "port range", input: "8080-8082", expected: []int{8080, 8081, 8082}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, _ := parseRangePorts(tc.input)
+			if !reflect.DeepEqual(result, tc.expected) {
+				t.Errorf("input: %v expected: %v result: %v", tc.input, tc.expected, result)
+			}
+		})
+	}
+}
