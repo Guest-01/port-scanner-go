@@ -19,7 +19,7 @@ func main() {
 
 	host := os.Args[1]
 
-	ports, err := parsePorts(os.Args[2])
+	ports, err := parseCommaSeparatedPorts(os.Args[2])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: Invalid port(s): %s. Details: %v\n", os.Args[2], err)
 		os.Exit(1)
@@ -51,17 +51,27 @@ func getUsage() string {
 }
 
 // "80,443,8080-8082" -> []int{80, 443, 8080, 8081, 8082}
-func parsePorts(portsStr string) ([]int, error) {
+func parseCommaSeparatedPorts(portsStr string) ([]int, error) {
 	ports := make([]int, 0)
 	for _, portStr := range strings.Split(portsStr, ",") {
+		if strings.Contains(portStr, "-") {
+			parsedRanges, err := parseRangePorts(portStr)
+			if err != nil {
+				return nil, err
+			}
+			ports = append(ports, parsedRanges...)
+			continue
+		}
 		port, err := strconv.Atoi(portStr)
 		if err != nil {
 			return nil, err
 		}
+		ports = append(ports, port)
+	}
+	for _, port := range ports {
 		if port > 65535 || port < 1 {
 			return nil, fmt.Errorf("port out of range: %v", port)
 		}
-		ports = append(ports, port)
 	}
 	return ports, nil
 }
