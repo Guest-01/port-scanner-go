@@ -60,7 +60,28 @@ append(slice1, slice2...)
 
 JS와 다른 점은 ...이 앞이 아닌 뒤에 붙는다는 것이다.
 
+### Goroutine에서 안전하게 슬라이스 삽입하기
+
+결과를 포트 순으로 출력하기 위해 고루틴을 돌며 바로 출력하지 않고 결과를 저장할 슬라이스를 만들어서 넣은 후에 정렬을 하고 출력하게 되었다. 그런데 보통 이렇게 슬라이스를 고루틴에서 쓰게 되면 race condition이 발생할 수 있다고 하여 권장하지 않고, 대신 `channel`을 쓰거나 일일이 `mutex.Lock()`을 걸어줘야하는 것으로 알고 있었다.
+
+그런데 아래와 같이 정해진 크기만큼의 슬라이스를 미리 만들고, 인덱스를 가지고 접근하면 괜찮다고 한다. (Claude3.7 답변 기준)
+
+```go
+results := make([]ScanResult, len(ports))
+
+for i, port := range ports {
+    wg.Add(1)
+    go func(i, port int) {
+        defer wg.Done()
+        isOpen := scanPort(host, port)
+        results[i] = ScanResult{Port: port, IsOpen: isOpen}
+    }(i, port)
+}
+```
+
+보통 문제는 같은 메모리에 접근하거나 슬라이스를 `append`를 이용하여 넣었을 때 확장이 일어나면서 생긴다고 한다. 위 같은 코드에서는 그런 문제가 일어나지 않기 때문에 괜찮다고 한다. 실제로 테스트를 여러번 해봤는데 별다른 오류가 생기지 않더라.
+
 ### TODO
 
 - ~~복합 포트 입력 받기 (예: 80, 443, 8080-8081)~~ 완료.
-- 결과를 포트순으로 출력하기
+- ~~결과를 포트순으로 출력하기~~ 완료.

@@ -5,11 +5,17 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
+
+type ScanResult struct {
+	Port   int
+	IsOpen bool
+}
 
 func main() {
 	if len(os.Args) != 3 {
@@ -26,20 +32,30 @@ func main() {
 	}
 
 	var wg sync.WaitGroup
+	results := make([]ScanResult, len(ports))
 
-	for _, port := range ports {
+	for i, port := range ports {
 		wg.Add(1)
-		go func(port int) {
+		go func(i, port int) {
 			defer wg.Done()
-			if isOpen := scanPort(host, port); isOpen {
-				fmt.Printf("%-5d : Open\n", port)
-			} else {
-				fmt.Printf("%-5d : Closed\n", port)
-			}
-		}(port)
+			isOpen := scanPort(host, port)
+			results[i] = ScanResult{Port: port, IsOpen: isOpen}
+		}(i, port)
 	}
 
 	wg.Wait()
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Port < results[j].Port
+	})
+
+	for _, result := range results {
+		if result.IsOpen {
+			fmt.Printf("%-5d : Open\n", result.Port)
+		} else {
+			fmt.Printf("%-5d : Closed\n", result.Port)
+		}
+	}
 }
 
 func getUsage() string {
